@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    image: node:20.9.0-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - '3300:3300'
+    env_file:
+      - .env
+      - ./apps/gateway/.env
+    environment:
+      - NODE_ENV=development
+      - AUTH_SERVICE_URL=http://auth-service:3301
+      - TASK_SERVICE_URL=http://task-service:3302
+      - USER_SERVICE_URL=http://user-service:3303
+    command: yarn start:dev gateway
+    depends_on:
+      - auth-service
+      - task-service
+      - user-service
+
+  auth-service:
+    image: node:20.9.0-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - '3301:3301'
+      - '3401:3401'
+    env_file:
+      - .env
+      - ./apps/auth/.env
+    environment:
+      - NODE_ENV=development
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+    command: yarn start:dev auth
+    depends_on:
+      - postgres
+
+  task-service:
+    image: node:20.9.0-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - '3302:3302'
+      - '3402:3402'
+    env_file:
+      - .env
+      - ./apps/tasks/.env
+    environment:
+      - NODE_ENV=development
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+    command: yarn start:dev tasks
+    depends_on:
+      - postgres
+
+  user-service:
+    image: node:20.9.0-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - '3303:3303'
+      - '3403:3403'
+    env_file:
+      - .env
+      - ./apps/users/.env
+    environment:
+      - NODE_ENV=development
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+    command: yarn start:dev users
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13.7
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_MULTIPLE_DATABASES=auth_db,task_db,user_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+
+volumes:
+  postgres-data:
