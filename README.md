@@ -333,8 +333,8 @@ Content-Type: application/json
 ## API Documentation
 
 The API documentation is available through Swagger UI at:
-- Development: http://localhost:3300/api
-- Production: https://your-domain/api
+- Development: http://localhost:3300/docs
+- Production: https://your-domain/docs
 
 All endpoints except authentication (/auth/*) require JWT authentication. Include the token in the Authorization header:
 ```
